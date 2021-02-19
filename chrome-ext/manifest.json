@@ -1,0 +1,45 @@
+{
+  "name": "Unify Selector",
+  "version": "1.1",
+  "description": "This extension incorporates Unify Selector CSS into the current page, parsing each element to see where the unify component is placed on the page",
+  "manifest_version": 2,
+
+  "permissions": ["activeTab", "<all_urls>"],
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.tokopedia.com/*",
+        "http://www.tokopedia.com/*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+
+  "browser_action": {
+    "default_title": "Selector of unify components",
+    "default_icon": {
+      "16": "/assets/img/unify_logo.png",
+      "32": "/assets/img/unify_logo.png",
+      "48": "/assets/img/unify_logo.png",
+      "128": "/assets/img/unify_logo.png"
+    },
+    "default_popup": "popup.html"
+  },
+
+  "icons": {
+    "16": "/assets/img/unify_logo.png",
+    "32": "/assets/img/unify_logo.png",
+    "48": "/assets/img/unify_logo.png",
+    "128": "/assets/img/unify_logo.png"
+  },
+
+  "web_accessible_resources": [
+    "/assets/style/unifySelectorCSS.css"
+  ]
+}

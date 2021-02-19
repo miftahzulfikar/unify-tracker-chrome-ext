@@ -1,0 +1,7 @@
+/* [data-unify] {
+  outline: 2px dotted #EF144A;
+} */
+
+[class*="unf-card"] {
+  outline: 2px dotted #ef144a;
+}
