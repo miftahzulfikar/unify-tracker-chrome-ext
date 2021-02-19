@@ -9,8 +9,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://www.tokopedia.com/*",
-        "http://www.tokopedia.com/*"
+        "<all_urls>"
       ],
       "js": ["content.js"]
     }
