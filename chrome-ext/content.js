@@ -28,7 +28,34 @@ const componentList = [
   },
 ];
 
+// should unify
+const tagList = [
+  // "a", // link
+  // typography
+  // "h1",
+  // "h2",
+  // "h3",
+  // "h4",
+  // "h5",
+  // "h6",
+  // "p",
+
+  "input",
+  "textarea",
+  "image",
+  "button",
+];
+
 const colors = [
+  "#d90c8d",
+  "#4f9cf9",
+  "#abb0b8",
+  "#877bf1",
+  "#9c7b60",
+  "#361092",
+  "#eb07e9",
+  "#930df2",
+  //
   "#d90c8d",
   "#4f9cf9",
   "#abb0b8",
@@ -39,8 +66,13 @@ const colors = [
   "#930df2",
 ];
 
-var data = [];
+var data = {
+  unify: [],
+  nonunify: [],
+};
+
 var highlight = true;
+var highlightNonUnify = false;
 
 chrome.runtime.onMessage.addListener(gotMessage);
 
@@ -50,16 +82,29 @@ function gotMessage(message, sender, sendResponse) {
     handleButtonClick();
   } else if (message.type === "CHECKBOX_CLICK") {
     handleCheckboxClick(message.value);
+  } else if (message.type === "CHECKBOX2_CLICK") {
+    handleCheckbox2Click(message.value);
   }
 }
 
 function handleButtonClick() {
-  data = [];
+  data = {
+    unify: [],
+    nonunify: [],
+  };
 
   componentList.forEach(function (item, i) {
     const count = countComponent(item.selector, i);
     if (count > 0) {
-      data.push({ ...item, count, color: colors[i] });
+      highlightComponent(item.selector, i, highlight);
+      data.unify.push({ ...item, count, color: colors[i] });
+    }
+  });
+
+  tagList.forEach(function (item, i) {
+    const count = countComponent(`${item}:not([data-unify])`, i);
+    if (count > 0) {
+      data.nonunify.push({ name: item, count, color: colors[i] });
     }
   });
 
@@ -71,22 +116,33 @@ function handleButtonClick() {
 
 function handleCheckboxClick(value) {
   highlight = value;
-  data.forEach((element, i) => {
-    highlightComponent(element.selector, i);
+  data.unify.forEach((element, i) => {
+    highlightComponent(element.selector, i, highlight);
+  });
+}
+
+function handleCheckbox2Click(value) {
+  highlightNonUnify = value;
+  data.nonunify.forEach((element, i) => {
+    highlightComponent(
+      `${element.name}:not([data-unify])`,
+      i,
+      highlightNonUnify
+    );
   });
 }
 
 function countComponent(selector, i) {
   let list = document.querySelectorAll(selector);
-  highlightComponent(selector, i);
+  // highlightComponent(selector, i);
 
   return list.length;
 }
 
-function highlightComponent(selector, i) {
+function highlightComponent(selector, i, coloring) {
   let list = document.querySelectorAll(selector);
   list.forEach((element) => {
-    if (highlight) {
+    if (coloring) {
       element.style.outline = `2px dotted ${colors[i]}`;
     } else {
       element.style.outline = "none";

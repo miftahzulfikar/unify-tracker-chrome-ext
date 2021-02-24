@@ -2,6 +2,7 @@
 
 const button = document.getElementById("button");
 const checkbox = document.getElementById("highlight");
+const checkbox2 = document.getElementById("highlight-non-unify");
 const targetCell = document.getElementById("target-cell");
 const exportButton = document.getElementById("export");
 
@@ -36,6 +37,22 @@ function handleCheckboxClicked() {
   }
 }
 
+checkbox2.addEventListener("click", handleCheckboxClicked2);
+
+function handleCheckboxClicked2() {
+  console.log("checkbox clicked", checkbox.checked);
+
+  chrome.tabs.query({ active: true, currentWindow: true }, sendMessage);
+
+  function sendMessage(tabs) {
+    const msg = {
+      type: "CHECKBOX2_CLICK",
+      value: checkbox2.checked,
+    };
+    chrome.tabs.sendMessage(tabs[0].id, msg);
+  }
+}
+
 const instance = axios.create({
   baseURL: "http://localhost:3000",
   headers: {
@@ -46,6 +63,7 @@ const instance = axios.create({
 });
 
 let list = [];
+let listNonUnify = [];
 let targetCellValue = "Homepage-Desktop!B5";
 
 targetCell.addEventListener("change", () => {
@@ -71,11 +89,22 @@ function gotMessage(message, sender, sendResponse) {
   console.log(message);
 
   if (message.type === "setCount") {
-    list = message.data;
+    list = message.data.unify;
     const wrapper = document.getElementById("table-list");
     const data = list.reduce(function (curr, item, i) {
-      return `${curr}<tr><td style="background-color: ${item.color};">${i + 1}</td><td>${item.name}</td><td>${item.count}</td></tr>`;
+      return `${curr}<tr><td style="background-color: ${item.color};"></td><td>${item.name}</td><td>${item.count}</td></tr>`;
     }, "");
     wrapper.innerHTML = data;
+
+    listNonUnify = message.data.nonunify;
+    const wrapperNonUnify = document.getElementById("table-non-unify");
+    const dataNonUnify = listNonUnify.reduce(function (curr, item, i) {
+      return `${curr}<tr><td style="background-color: ${item.color};"></td><td>${item.name}</td><td>${item.count}</td></tr>`;
+    }, "");
+    wrapperNonUnify.innerHTML = dataNonUnify;
   }
 }
+
+handleButtonClicked();
+handleCheckboxClicked();
+handleCheckbox2Clicked();

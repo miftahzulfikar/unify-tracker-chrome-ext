@@ -1,0 +1,22 @@
+.two-column {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 8px;
+}
+
+.section-title {
+  border-bottom: solid 1px #e1e1e1;
+}
+
+input[type="checkbox"] {
+  margin: 0 4px 0;
+}
+
+tr {
+  border-left: solid 1px #e1e1e1;
+  border-right: solid 1px #e1e1e1;
+}
+
+thead > tr {
+  border-top: solid 1px #e1e1e1;
+}
