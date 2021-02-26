@@ -6,4 +6,7 @@ first load unpacked chrome extension by set path to `[path-to-this-root-director
 
 ### run middleware
 
-`node server.js`
+```
+cd middleware
+node server.js
+```

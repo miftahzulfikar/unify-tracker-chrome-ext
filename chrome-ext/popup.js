@@ -64,7 +64,7 @@ const instance = axios.create({
 
 let list = [];
 let listNonUnify = [];
-let targetCellValue = "Homepage-Desktop!B5";
+let targetCellValue = "Homepage-Desktop!B5"; // default
 
 targetCell.addEventListener("change", () => {
   targetCellValue = targetCell.value;
@@ -78,7 +78,7 @@ function handleExportButtonClick() {
   formData.append("list", JSON.stringify(list));
 
   console.log(targetCellValue);
-  instance.put("/", formData);
+  instance.put("/update-spreadsheet", formData);
 }
 
 // listener

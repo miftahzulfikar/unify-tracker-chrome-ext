@@ -85,7 +85,7 @@ function getNewToken(oAuth2Client, callback) {
 async function update(req, res) {
   return await connect(async (auth) => {
     const sheets = await google.sheets({ version: "v4", auth });
-    return sheets.spreadsheets.values.update(
+    return sheets.spreadsheets.values.append(
       {
         spreadsheetId: SPREADSHEET_ID,
         ...req,
@@ -96,7 +96,7 @@ async function update(req, res) {
           console.log(err);
         } else {
           // console.log("%d cells updated.", result.updatedCells);
-          res.json(200);
+          res && res.json(200);
         }
       }
     );
