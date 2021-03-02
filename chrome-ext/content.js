@@ -6,21 +6,21 @@ const componentList = [
     name: "Button",
     selector: "*[class*='unf-btn']",
   },
-  {
-    id: 2,
-    name: "Button non Unify",
-    selector: "button:not(*[class*='unf-btn'])",
-  },
+  // {
+  //   id: 2,
+  //   name: "Button non Unify",
+  //   selector: "button:not(*[class*='unf-btn'])",
+  // },
   {
     id: 3,
     name: "Image",
     selector: "picture.unf-image > img",
   },
-  {
-    id: 3,
-    name: "Image non Unify",
-    selector: "img:not(picture.unf-image > img)",
-  },
+  // {
+  //   id: 3,
+  //   name: "Image non Unify",
+  //   selector: "img:not(picture.unf-image > img)",
+  // },
   {
     id: 4,
     name: "Card",

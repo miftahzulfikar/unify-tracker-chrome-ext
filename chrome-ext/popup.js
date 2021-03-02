@@ -37,9 +37,9 @@ function handleCheckboxClicked() {
   }
 }
 
-checkbox2.addEventListener("click", handleCheckboxClicked2);
+checkbox2.addEventListener("click", handleCheckbox2Clicked);
 
-function handleCheckboxClicked2() {
+function handleCheckbox2Clicked() {
   console.log("checkbox clicked", checkbox.checked);
 
   chrome.tabs.query({ active: true, currentWindow: true }, sendMessage);
