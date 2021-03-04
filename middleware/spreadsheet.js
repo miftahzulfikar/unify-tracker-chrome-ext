@@ -85,6 +85,27 @@ function getNewToken(oAuth2Client, callback) {
 async function update(req, res) {
   return await connect(async (auth) => {
     const sheets = await google.sheets({ version: "v4", auth });
+    return sheets.spreadsheets.values.update(
+      {
+        spreadsheetId: SPREADSHEET_ID,
+        ...req,
+      },
+      (err, result) => {
+        if (err) {
+          // Handle error
+          console.log(err);
+        } else {
+          // console.log("%d cells updated.", result.updatedCells);
+          res && res.json(200);
+        }
+      }
+    );
+  });
+}
+
+async function append(req, res) {
+  return await connect(async (auth) => {
+    const sheets = await google.sheets({ version: "v4", auth });
     return sheets.spreadsheets.values.append(
       {
         spreadsheetId: SPREADSHEET_ID,
@@ -132,4 +153,5 @@ function uploadScreenshot(reqData) {
 }
 
 exports.update = update;
+exports.append = append;
 exports.uploadScreenshot = uploadScreenshot;

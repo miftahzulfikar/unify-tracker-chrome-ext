@@ -1,45 +1,30 @@
 const startBrowser = require("./browser");
 const spreadsheetAPI = require("./spreadsheet");
+const { scraperConfig, tagList, scraperConf } = require("./constant");
 
-const tagList = [
-  // "a",
-  // "h1",
-  // "h2",
-  // "h3",
-  // "h4",
-  // "h5",
-  // "h6",
-  // "p",
-  "input",
-  "textarea",
-  "image",
-  "button",
-];
-
-const scraper = async (urls = [], res) => {
+(async () => {
   let browserInstance = await startBrowser();
 
-  let result = [];
+  await scraperConf.reduce(async (items, x) => {
+    const module = x.module;
 
-  await Promise.all(
-    urls.map(async (x) => {
-      const page = await browserInstance.newPage();
+    await Promise.all(
+      x.routes.map(async (y) => {
+        const page = await browserInstance.newPage();
 
-      await page.goto(x.url);
+        await page.setDefaultNavigationTimeout(0);
 
-      if (x.wait) {
-        await page.waitFor(x.wait);
-      }
+        await page.goto(y.url);
 
-      result.push(
-        await page.evaluate(
-          ({ result, url, tagList }) => {
+        if (y.wait) {
+          await page.waitFor(y.wait);
+        }
+
+        const item = await page.evaluate(
+          async ({ module, params, tagList }) => {
+            const { name, ...otherParams } = params;
             // unify
             let list = document.querySelectorAll("[data-unify]");
-            let data = [];
-            list.forEach((y) => {
-              data.push(y.getAttribute("data-unify"));
-            });
 
             const reduced = Array.from(list).reduce((acc, y) => {
               const key = y.getAttribute("data-unify");
@@ -49,73 +34,100 @@ const scraper = async (urls = [], res) => {
               return acc;
             }, {});
 
+            const reduced2 = Object.keys(reduced).reduce(
+              (acc, z) => `${acc}- ${z}: ${reduced[z]}\n`,
+              ""
+            );
+
             // non unify
 
             let nonUnifyList = tagList.reduce((acc, x) => {
               const count = document.querySelectorAll(`${x}:not([data-unify])`)
                 .length;
               if (count > 0) {
-                acc.push([x, count]);
+                return `${acc}- ${x}: ${count}\n`;
               }
 
               return acc;
-            }, []);
+            }, "");
 
-            return { url: url, data: reduced, nonUnify: nonUnifyList };
+            return {
+              module: module,
+              values: [
+                // result.length + 1,
+                // name,
+                Object.keys(otherParams).reduce(
+                  (acc, x) => `${acc}- ${x}: ${otherParams[x]}\n`,
+                  ""
+                ),
+                reduced2,
+                nonUnifyList,
+              ],
+            };
           },
-          { result, url: x.url, tagList }
-        )
-      );
-    })
-  );
+          { module, params: y, tagList }
+        );
 
-  console.log(result);
-  updateSpreadsheet(result, res);
+        await page.close();
 
-  browserInstance.close();
-};
-
-const updateSpreadsheet = async (arr, res) => {
-  let valuesItem = arr.reduce((acc, x) => {
-    acc.push(["url :", x.url], ["COMPONENT", "COUNT"]);
-
-    if (Object.keys(x.data).length > 0) {
-      Object.keys(x.data).forEach((y) => {
-        acc.push([y, x.data[y]]);
+        return item;
+      })
+    )
+      .then(async (x) => {
+        console.log("test", x);
+        await updateSpreadsheet(x);
+      })
+      .catch((error) => {
+        console.log("error promise: ", error);
       });
-    } else {
-      acc.push(["None"]);
-    }
-
-    if (x.nonUnify.length > 0) {
-      acc.push(
-        ["----------"],
-        ["Non Unify Element:"],
-        ["Element", "COUNT"],
-        ...x.nonUnify
-      );
-    }
-    acc.push(["----------"]);
-    return acc;
   }, []);
+  browserInstance.close();
+})();
 
-  const resUpdate = await updateSingleRow([
-    ["========================================"],
-    ["Date :", Date()],
-    ["----------"],
-    ...valuesItem,
-    ["========================================"],
-  ]);
+const updateSpreadsheet = async (arr) => {
+  arr.forEach(async (x, i) => {
+    await updateSingleRow(x.module, x.values, i);
+  });
+  // let valuesItem = arr.reduce((acc, x) => {
+  //   acc.push(["url :", x.url], ["COMPONENT", "COUNT"]);
+
+  //   if (Object.keys(x.data).length > 0) {
+  //     Object.keys(x.data).forEach((y) => {
+  //       acc.push([y, x.data[y]]);
+  //     });
+  //   } else {
+  //     acc.push(["None"]);
+  //   }
+
+  //   if (x.nonUnify.length > 0) {
+  //     acc.push(
+  //       ["----------"],
+  //       ["Non Unify Element:"],
+  //       ["Element", "COUNT"],
+  //       ...x.nonUnify
+  //     );
+  //   }
+  //   acc.push(["----------"]);
+  //   return acc;
+  // }, []);
+
+  // const resUpdate = await updateSingleRow([
+  //   ["========================================"],
+  //   ["Date :", Date()],
+  //   ["----------"],
+  //   ...valuesItem,
+  //   ["========================================"],
+  // ]);
 };
 
-const updateSingleRow = (values) => {
-  return spreadsheetAPI.update({
-    range: "scraper!A1",
+const updateSingleRow = async (module, values, i) => {
+  return await spreadsheetAPI.update({
+    range: `${module}!D${6 + i}`,
     valueInputOption: "RAW",
     resource: {
-      values: values,
+      values: [values],
     },
   });
 };
 
-module.exports = scraper;
+// module.exports = scraper;

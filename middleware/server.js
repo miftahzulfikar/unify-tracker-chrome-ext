@@ -20,7 +20,7 @@ app.put("/update-spreadsheet", (req, res) => {
   const dateNow = Date();
   const values = parsedList.map((x) => [x.name, dateNow, x.count]);
 
-  const resolve = spreadsheetAPI.update(
+  const resolve = spreadsheetAPI.append(
     {
       range: range,
       valueInputOption: "RAW",
@@ -37,7 +37,8 @@ app.post("/scraper", (req, res) => {
   const { urls } = req.body;
 
   const parsedUrls = JSON.parse(urls);
-  scraper(parsedUrls);
+  // scraper(parsedUrls);
+  console.log(parsedUrls[0].routes);
 
   res.send(200);
 });
