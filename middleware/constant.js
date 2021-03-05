@@ -55,7 +55,7 @@ const tagList = [
   "button",
 ];
 
-const sheetList = ["Search", "PDP"];
+const sheetList = ["Search", "PDP", "Test"];
 
 // sample response body:
 const resData = [
@@ -105,6 +105,6 @@ const resData = [
   },
 ];
 
-exports.scraperConf = scraperConfig;
+exports.scraperConfig = scraperConfig;
 exports.tagList = tagList;
 exports.sheetList = sheetList;
