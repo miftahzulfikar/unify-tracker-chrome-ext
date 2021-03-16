@@ -74,16 +74,44 @@ var data = {
 var highlight = true;
 var highlightNonUnify = false;
 
+var iframe = document.createElement('iframe'); 
+iframe.style.background = "green";
+iframe.style.height = "100%";
+iframe.style.width = "0px";
+iframe.style.position = "fixed";
+iframe.style.top = "0px";
+iframe.style.right = "0px";
+iframe.style.zIndex = "9000000000000000000";
+iframe.frameBorder = "none"; 
+iframe.src = chrome.extension.getURL("popup.html")
+
+document.body.appendChild(iframe);
+
 chrome.runtime.onMessage.addListener(gotMessage);
 
 function gotMessage(message, sender, sendResponse) {
   console.log(message);
-  if (message.type === "BUTTON_CLICK") {
-    handleButtonClick();
-  } else if (message.type === "CHECKBOX_CLICK") {
-    handleCheckboxClick(message.value);
-  } else if (message.type === "CHECKBOX2_CLICK") {
-    handleCheckbox2Click(message.value);
+
+  if(message.text == "toggle"){
+    toggle();
+    console.log('send msg toggle')
+  }
+  
+    if (message.type === "BUTTON_CLICK") {
+      handleButtonClick();
+    } else if (message.type === "CHECKBOX_CLICK") {
+      handleCheckboxClick(message.value);
+    } else if (message.type === "CHECKBOX2_CLICK") {
+      handleCheckbox2Click(message.value);
+    }
+}
+
+function toggle() {
+  if(iframe.style.width == "0px"){
+      iframe.style.width="400px";
+  }
+  else{
+      iframe.style.width="0px";
   }
 }
 

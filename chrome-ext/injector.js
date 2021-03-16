@@ -9,5 +9,6 @@
 
   chrome.browserAction.onClicked.addListener(function (tab) {
     toggleAction(tab);
+    chrome.tabs.sendMessage(tab.id,"toggle");
   });
 })(window, document);

@@ -1,5 +1,5 @@
 {
-  "name": "Unify Selector",
+  "name": "Unify Selector - miftah version",
   "version": "1.1",
   "description": "This extension incorporates Unify Selector CSS into the current page, parsing each element to see where the unify component is placed on the page",
   "manifest_version": 2,
@@ -27,8 +27,7 @@
       "32": "/assets/img/unify_logo.png",
       "48": "/assets/img/unify_logo.png",
       "128": "/assets/img/unify_logo.png"
-    },
-    "default_popup": "popup.html"
+    }
   },
 
   "icons": {
@@ -39,6 +38,7 @@
   },
 
   "web_accessible_resources": [
-    "/assets/style/unifySelectorCSS.css"
+    "/assets/style/unifySelectorCSS.css",
+    "/popup.html"
   ]
 }

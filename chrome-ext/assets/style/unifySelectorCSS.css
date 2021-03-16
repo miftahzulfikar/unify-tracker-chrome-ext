@@ -1,7 +1,8 @@
-/* [data-unify] {
+[data-unify],
+[data-testid] {
   outline: 2px dotted #EF144A;
-} */
-
-[class*="unf-card"] {
-  outline: 2px dotted #ef144a;
 }
+
+/* [class*="unf-card"] {
+  outline: 2px dotted #ef144a;
+} */
