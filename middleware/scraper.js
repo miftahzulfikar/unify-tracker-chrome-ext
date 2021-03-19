@@ -3,8 +3,9 @@ const spreadsheetAPI = require("./spreadsheet");
 const { tagList, sheetList } = require("./constant");
 
 (async () => {
+  let browserInstance = await startBrowser();
+
   try {
-    let browserInstance = await startBrowser();
     for (let i = 0; i < sheetList.length; i++) {
       const module = sheetList[i];
       // get routes
@@ -78,10 +79,21 @@ const { tagList, sheetList } = require("./constant");
 
         await page.close();
       }
+      // update date
+      await spreadsheetAPI.update({
+        range: `${module}!B4`,
+        valueInputOption: "RAW",
+        resource: {
+          values: [[Date()]],
+        },
+      });
     }
-    browserInstance.close();
+
+    // browserInstance.close();
   } catch (err) {
     console.log(err);
+  } finally {
+    browserInstance.close();
   }
 })();
 
