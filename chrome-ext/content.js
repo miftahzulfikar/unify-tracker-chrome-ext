@@ -74,45 +74,41 @@ var data = {
 var highlight = true;
 var highlightNonUnify = false;
 
-var iframe = document.createElement('iframe'); 
-iframe.style.background = "green";
-iframe.style.height = "100%";
-iframe.style.width = "0px";
-iframe.style.position = "fixed";
-iframe.style.top = "0px";
-iframe.style.right = "0px";
-iframe.style.zIndex = "9000000000000000000";
-iframe.frameBorder = "none"; 
-iframe.src = chrome.extension.getURL("popup.html")
+var iframe = document.createElement('iframe');
+    iframe.id = "unifySelector";
+    iframe.style.width = "0px";
+    iframe.frameBorder = "none"; 
+    iframe.src = chrome.extension.getURL("popup.html");
+
+var style = document.createElement("link");
+    style.id = 'unifySelector';
+    style.rel = 'stylesheet';
+    style.type = 'text/css';
+    style.href = chrome.extension.getURL("/assets/style/unifySelectorCSS.css");
+
+document.getElementsByTagName('head')[0].appendChild(style);
 
 document.body.appendChild(iframe);
 
 chrome.runtime.onMessage.addListener(gotMessage);
 
-function gotMessage(message, sender, sendResponse) {
-  console.log(message);
+function countComponent(selector, i) {
+  let list = document.querySelectorAll(selector);
+  // highlightComponent(selector, i);
 
-  if(message.text == "toggle"){
-    toggle();
-    console.log('send msg toggle')
-  }
-  
-    if (message.type === "BUTTON_CLICK") {
-      handleButtonClick();
-    } else if (message.type === "CHECKBOX_CLICK") {
-      handleCheckboxClick(message.value);
-    } else if (message.type === "CHECKBOX2_CLICK") {
-      handleCheckbox2Click(message.value);
-    }
+  return list.length;
 }
 
-function toggle() {
-  if(iframe.style.width == "0px"){
-      iframe.style.width="400px";
-  }
-  else{
-      iframe.style.width="0px";
-  }
+function highlightComponent(selector, i, coloring) {
+  let list = document.querySelectorAll(selector);
+  list.forEach((element) => {
+    if (coloring) {
+      element.style.outline = `2px dotted ${colors[i]}`;
+    } else {
+      element.style.outline = "none";
+    }
+  });
+  return list.length;
 }
 
 function handleButtonClick() {
@@ -160,21 +156,27 @@ function handleCheckbox2Click(value) {
   });
 }
 
-function countComponent(selector, i) {
-  let list = document.querySelectorAll(selector);
-  // highlightComponent(selector, i);
-
-  return list.length;
+function toggleIframe () {
+  if (iframe.style.width == "0px") {
+    iframe.style.width = "400px";
+  } else {
+    iframe.style.width = "0px";
+  }
 }
 
-function highlightComponent(selector, i, coloring) {
-  let list = document.querySelectorAll(selector);
-  list.forEach((element) => {
-    if (coloring) {
-      element.style.outline = `2px dotted ${colors[i]}`;
-    } else {
-      element.style.outline = "none";
+function gotMessage(message, sender, sendResponse) {
+  console.log(message);
+
+  if(message.text == "toggle"){
+    toggleIframe();
+    // console.log('send msg toggle');
+  }
+  
+    if (message.type === "BUTTON_CLICK") {
+      handleButtonClick();
+    } else if (message.type === "CHECKBOX_CLICK") {
+      handleCheckboxClick(message.value);
+    } else if (message.type === "CHECKBOX2_CLICK") {
+      handleCheckbox2Click(message.value);
     }
-  });
-  return list.length;
 }
