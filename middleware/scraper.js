@@ -1,6 +1,7 @@
 const startBrowser = require("./browser");
 const spreadsheetAPI = require("./spreadsheet");
 const { tagList, sheetList } = require("./constant");
+const postSlack = require("./postSlack");
 
 (async () => {
   let browserInstance = await startBrowser();
@@ -89,9 +90,10 @@ const { tagList, sheetList } = require("./constant");
       });
     }
 
-    // browserInstance.close();
+    postSlack("Unify Tracker Updated");
   } catch (err) {
     console.log(err);
+    postSlack("Unify Tracker Error:\n", err);
   } finally {
     browserInstance.close();
   }
