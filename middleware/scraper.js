@@ -111,6 +111,8 @@ const { response } = require("express");
       });
     }
 
+    slackMsg += `See detail information on https://docs.google.com/spreadsheets/d/1UcZ47-kYD5OzMZKuyKh4TfiFfhlnf3ooyI5R6u8PRbM/edit#gid=2040333579`;
+
     postSlack(slackMsg);
   } catch (err) {
     console.log(err);
