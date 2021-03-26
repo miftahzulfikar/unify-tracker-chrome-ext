@@ -153,6 +153,20 @@ async function get(req) {
   });
 }
 
+async function batchGet(req) {
+  return await connect(async (auth) => {
+    const sheets = await google.sheets({ version: "v4", auth });
+    const response = (
+      await sheets.spreadsheets.values.batchGet({
+        spreadsheetId: SPREADSHEET_ID,
+        ...req,
+      })
+    ).data;
+
+    return response;
+  });
+}
+
 function uploadScreenshot(reqData) {
   connect((auth) => {
     const drive = google.drive({ version: "v3", auth });
@@ -184,4 +198,5 @@ function uploadScreenshot(reqData) {
 exports.update = update;
 exports.append = append;
 exports.get = get;
+exports.batchGet = batchGet;
 exports.uploadScreenshot = uploadScreenshot;

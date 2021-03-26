@@ -1,21 +1,36 @@
 const startBrowser = require("./browser");
 const spreadsheetAPI = require("./spreadsheet");
-const { tagList, sheetList } = require("./constant");
+const { tagList, sheetList, scraperConfig } = require("./constant");
 const postSlack = require("./postSlack");
+const { response } = require("express");
 
 (async () => {
+  let startDate = Date();
+  // every console log below will be printed on log file
+  console.log("==========");
+  console.log("Start Scraper : ", startDate);
+  let slackMsg = `
+    Unify Tracker Updated on: ${startDate}
+    Scraper Log:
+  `;
   let browserInstance = await startBrowser();
 
   try {
     for (let i = 0; i < sheetList.length; i++) {
       const module = sheetList[i];
-      // get routes
-      const response = await spreadsheetAPI.get({
-        range: `${module}!D6:D100`,
+
+      console.log("scraping module: ", module);
+      slackMsg += `# Module: ${module} \n`;
+
+      // get routes & params
+      const response = await spreadsheetAPI.batchGet({
+        ranges: [`${module}!B6:B100`, `${module}!D6:D100`],
       });
-      const values = response.values.flat();
+      const routes = response.valueRanges[0].values.flat();
+      const values = response.valueRanges[1].values.flat();
 
       for (let j = 0; j < values.length; j++) {
+        console.log("- Scraping route: ", routes[j], "...");
         const params = JSON.parse(values[j]);
         const page = await browserInstance.newPage();
 
@@ -76,26 +91,33 @@ const postSlack = require("./postSlack");
           { params, tagList }
         );
 
+        console.log("insert data to spreadsheet...");
         await updateSingleRow(module, item, j);
 
         await page.close();
+
+        slackMsg += `- ${routes[j]} :heavy_check_mark: \n`;
       }
+
+      console.log("Module ", module, "has been scraped.");
       // update date
+      console.log("updating date to spreadsheet...");
       await spreadsheetAPI.update({
         range: `${module}!B4`,
         valueInputOption: "RAW",
         resource: {
-          values: [[Date()]],
+          values: [[startDate]],
         },
       });
     }
 
-    postSlack("Unify Tracker Updated");
+    postSlack(slackMsg);
   } catch (err) {
     console.log(err);
     postSlack("Unify Tracker Error:\n", err);
   } finally {
     browserInstance.close();
+    console.log("Scraper Done");
   }
 })();
 
