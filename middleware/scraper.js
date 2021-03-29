@@ -1,6 +1,6 @@
 const startBrowser = require("./browser");
 const spreadsheetAPI = require("./spreadsheet");
-const { tagList, sheetList, scraperConfig } = require("./constant");
+const { tagList } = require("./constant");
 const postSlack = require("./postSlack");
 const { response } = require("express");
 
@@ -16,6 +16,12 @@ const { response } = require("express");
   let browserInstance = await startBrowser();
 
   try {
+    const getSheetListRes = await spreadsheetAPI.get({
+      range: "Dashboard!A9:A100",
+    });
+
+    const sheetList = getSheetListRes.values.flat();
+
     for (let i = 0; i < sheetList.length; i++) {
       const module = sheetList[i];
 
@@ -111,11 +117,11 @@ const { response } = require("express");
       });
     }
 
-    slackMsg += `See detail information on https://docs.google.com/spreadsheets/d/1UcZ47-kYD5OzMZKuyKh4TfiFfhlnf3ooyI5R6u8PRbM/edit#gid=2040333579`;
+    slackMsg += `See detail information on https://docs.google.com/spreadsheets/d/1UcZ47-kYD5OzMZKuyKh4TfiFfhlnf3ooyI5R6u8PRbM/edit#gid=1030955860`;
 
     postSlack(slackMsg);
   } catch (err) {
-    console.log(err);
+    console.log("error: ", err);
     postSlack("Unify Tracker Error:\n", err);
   } finally {
     browserInstance.close();
