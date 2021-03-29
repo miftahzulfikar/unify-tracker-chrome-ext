@@ -7,9 +7,9 @@
   outline: 2px dotted #ef144a;
 } */
 
-#unifySelector {
+#unifySelectorIframe {
   position: fixed;
-  width: 0;
+  width: 400px;
   border-radius: 8px;
   top: 24px;
   right: 24px;

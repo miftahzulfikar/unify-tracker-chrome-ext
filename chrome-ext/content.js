@@ -74,22 +74,6 @@ var data = {
 var highlight = true;
 var highlightNonUnify = false;
 
-var iframe = document.createElement('iframe');
-    iframe.id = "unifySelector";
-    iframe.style.width = "0px";
-    iframe.frameBorder = "none"; 
-    iframe.src = chrome.extension.getURL("popup.html");
-
-var style = document.createElement("link");
-    style.id = 'unifySelector';
-    style.rel = 'stylesheet';
-    style.type = 'text/css';
-    style.href = chrome.extension.getURL("/assets/style/unifySelectorCSS.css");
-
-document.getElementsByTagName('head')[0].appendChild(style);
-
-document.body.appendChild(iframe);
-
 chrome.runtime.onMessage.addListener(gotMessage);
 
 function countComponent(selector, i) {
@@ -156,11 +140,35 @@ function handleCheckbox2Click(value) {
   });
 }
 
+function createIframe() {
+  const iframe = document.createElement('iframe');
+  iframe.id = "unifySelectorIframe";
+  iframe.frameBorder = "none"; 
+  iframe.src = chrome.extension.getURL("popup.html");
+
+  document.body.appendChild(iframe);
+}
+
+function createStyle() {
+  const style = document.createElement("link");
+  style.id = 'unifySelectorStyle';
+  style.rel = 'stylesheet';
+  style.type = 'text/css';
+  style.href = chrome.extension.getURL("/assets/style/unifySelectorCSS.css");
+
+  document.getElementsByTagName('head')[0].appendChild(style);
+}
+
 function toggleIframe () {
-  if (iframe.style.width == "0px") {
-    iframe.style.width = "400px";
+  if (document.getElementById('unifySelectorIframe')) {
+    // if they exist, remove them
+    document.getElementsByTagName('body')[0].removeChild(document.getElementById('unifySelectorIframe'));
+    document.getElementsByTagName('head')[0].removeChild(document.getElementById('unifySelectorStyle'));
+
   } else {
-    iframe.style.width = "0px";
+    // if they don't exist, inject createStyle() & createIframe();
+    createStyle();
+    createIframe();
   }
 }
 
