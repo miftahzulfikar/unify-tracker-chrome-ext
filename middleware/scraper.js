@@ -2,7 +2,6 @@ const startBrowser = require("./browser");
 const spreadsheetAPI = require("./spreadsheet");
 const { tagList } = require("./constant");
 const postSlack = require("./postSlack");
-const { response } = require("express");
 
 (async () => {
   let startDate = Date();
