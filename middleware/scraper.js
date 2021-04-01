@@ -1,121 +1,152 @@
 const startBrowser = require("./browser");
 const spreadsheetAPI = require("./spreadsheet");
+const { tagList } = require("./constant");
+const postSlack = require("./postSlack");
 
-const tagList = [
-  // "a",
-  // "h1",
-  // "h2",
-  // "h3",
-  // "h4",
-  // "h5",
-  // "h6",
-  // "p",
-  "input",
-  "textarea",
-  "image",
-  "button",
-];
-
-const scraper = async (urls = [], res) => {
+(async () => {
+  let startDate = Date();
+  // every console log below will be printed on log file
+  console.log("==========");
+  console.log("Start Scraper : ", startDate);
+  let slackMsg = `
+    Unify Tracker Updated on: ${startDate}
+    Scraper Log:
+  `;
   let browserInstance = await startBrowser();
 
-  let result = [];
+  try {
+    const getSheetListRes = await spreadsheetAPI.get({
+      range: "Dashboard!A9:A100",
+    });
 
-  await Promise.all(
-    urls.map(async (x) => {
-      const page = await browserInstance.newPage();
+    const sheetList = getSheetListRes.values.flat();
 
-      await page.goto(x.url);
+    for (let i = 0; i < sheetList.length; i++) {
+      try {
+        const module = sheetList[i];
 
-      if (x.wait) {
-        await page.waitFor(x.wait);
-      }
+        console.log("scraping module: ", module);
+        slackMsg += `# Module: ${module} \n`;
 
-      result.push(
-        await page.evaluate(
-          ({ result, url, tagList }) => {
-            // unify
-            let list = document.querySelectorAll("[data-unify]");
-            let data = [];
-            list.forEach((y) => {
-              data.push(y.getAttribute("data-unify"));
-            });
+        // get routes & params
+        const response = await spreadsheetAPI.batchGet({
+          ranges: [`${module}!B6:B100`, `${module}!D6:D100`],
+        });
+        const routes = response.valueRanges[0].values.flat();
+        const values = response.valueRanges[1].values.flat();
 
-            const reduced = Array.from(list).reduce((acc, y) => {
-              const key = y.getAttribute("data-unify");
+        for (let j = 0; j < values.length; j++) {
+          console.log("- Scraping route: ", routes[j], "...");
+          const params = JSON.parse(values[j]);
+          const page = await browserInstance.newPage();
 
-              acc[key] = acc[key] ? acc[key] + 1 : 1;
+          await page.setDefaultNavigationTimeout(0);
 
-              return acc;
-            }, {});
+          await page.goto(params.url, { waitUntil: "networkidle2" });
 
-            // non unify
+          if (params.lazyload) {
+            // Get scroll width and height of the rendered page and set viewport
+            const bodyWidth = await page.evaluate(
+              () => document.body.scrollWidth
+            );
+            const bodyHeight = await page.evaluate(
+              () => document.body.scrollHeight
+            );
+            await page.setViewport({ width: bodyWidth, height: bodyHeight });
+            await page.waitForTimeout(10000);
+          }
 
-            let nonUnifyList = tagList.reduce((acc, x) => {
-              const count = document.querySelectorAll(`${x}:not([data-unify])`)
-                .length;
-              if (count > 0) {
-                acc.push([x, count]);
-              }
+          if (params.wait) {
+            await page.waitForTimeout(params.wait);
+          }
 
-              return acc;
-            }, []);
+          const item = await page.evaluate(
+            async ({ params, tagList }) => {
+              const { name, ...otherParams } = params;
+              // unify
+              let list = document.querySelectorAll("[data-unify]");
 
-            return { url: url, data: reduced, nonUnify: nonUnifyList };
+              const reduced = Array.from(list).reduce((acc, el) => {
+                const key = el.getAttribute("data-unify");
+
+                acc[key] = acc[key] ? acc[key] + 1 : 1;
+
+                return acc;
+              }, {});
+
+              const reduced2 = Object.keys(reduced).reduce(
+                (acc, x) => `${acc}- ${x}: ${reduced[x]}\n`,
+                ""
+              );
+
+              // non unify
+
+              let nonUnifyList = tagList.reduce((acc, tag) => {
+                const count = document.querySelectorAll(
+                  `${tag}:not([data-unify])`
+                ).length;
+                if (count > 0) {
+                  return `${acc}- ${tag}: ${count}\n`;
+                }
+
+                return acc;
+              }, "");
+
+              return [reduced2, nonUnifyList];
+            },
+            { params, tagList }
+          );
+
+          console.log("insert data to spreadsheet...");
+
+          try {
+            await updateSingleRow(module, item, j);
+            slackMsg += `- ${routes[j]} :heavy_check_mark: \n`;
+          } catch (e) {
+            slackMsg += `- ${routes[j]} :x: \n`;
+          } finally {
+            await page.close();
+          }
+        }
+
+        console.log("Module ", module, "has been scraped.");
+        // update date
+        console.log("updating date to spreadsheet...");
+        await spreadsheetAPI.update({
+          range: `${module}!B4`,
+          valueInputOption: "RAW",
+          resource: {
+            values: [[startDate]],
           },
-          { result, url: x.url, tagList }
-        )
-      );
-    })
-  );
-
-  console.log(result);
-  updateSpreadsheet(result, res);
-
-  browserInstance.close();
-};
-
-const updateSpreadsheet = async (arr, res) => {
-  let valuesItem = arr.reduce((acc, x) => {
-    acc.push(["url :", x.url], ["COMPONENT", "COUNT"]);
-
-    if (Object.keys(x.data).length > 0) {
-      Object.keys(x.data).forEach((y) => {
-        acc.push([y, x.data[y]]);
-      });
-    } else {
-      acc.push(["None"]);
+        });
+      } catch (e) {
+        console.log(e);
+      }
     }
 
-    if (x.nonUnify.length > 0) {
-      acc.push(
-        ["----------"],
-        ["Non Unify Element:"],
-        ["Element", "COUNT"],
-        ...x.nonUnify
-      );
-    }
-    acc.push(["----------"]);
-    return acc;
-  }, []);
+    slackMsg += `See detail information on https://docs.google.com/spreadsheets/d/1UcZ47-kYD5OzMZKuyKh4TfiFfhlnf3ooyI5R6u8PRbM/edit#gid=1030955860`;
 
-  const resUpdate = await updateSingleRow([
-    ["========================================"],
-    ["Date :", Date()],
-    ["----------"],
-    ...valuesItem,
-    ["========================================"],
-  ]);
+    postSlack(slackMsg);
+    console.log("Scraper Done");
+  } catch (err) {
+    console.log("error: ", err);
+    postSlack("Unify Tracker Error:\n", err);
+    console.log("Scraper Failed");
+  } finally {
+    browserInstance.close();
+  }
+})();
+
+const updateSingleRow = async (module, values, i) => {
+  try {
+    return await spreadsheetAPI.update({
+      range: `${module}!E${6 + i}`,
+      valueInputOption: "RAW",
+      resource: {
+        values: [values],
+      },
+    });
+  } catch (err) {
+    throw `spreadsheet update failed for module: ${module} row: ${i + 1}`;
+  }
 };
-
-const updateSingleRow = (values) => {
-  return spreadsheetAPI.update({
-    range: "scraper!A1",
-    valueInputOption: "RAW",
-    resource: {
-      values: values,
-    },
-  });
-};
-
-module.exports = scraper;

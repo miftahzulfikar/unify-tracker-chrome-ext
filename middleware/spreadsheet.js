@@ -14,13 +14,20 @@ const { SCOPES, TOKEN_PATH, SPREADSHEET_ID } = require("./settings");
 // const TOKEN_PATH = "token.json";
 // const spreadsheetId = "1UcZ47-kYD5OzMZKuyKh4TfiFfhlnf3ooyI5R6u8PRbM";
 
-function connect(func) {
+async function connect(func) {
   // Load client secrets from a local file.
-  fs.readFile("credentials.json", (err, content) => {
-    if (err) return console.log("Error loading client secret file:", err);
-    // Authorize a client with credentials, then call the Google Sheets API.
-    authorize(JSON.parse(content), func);
-  });
+  // fs.readFile("credentials.json", (err, content) => {
+  //   if (err) return console.log("Error loading client secret file:", err);
+  //   // Authorize a client with credentials, then call the Google Sheets API.
+  //   authorize(JSON.parse(content), func);
+  // });
+
+  try {
+    let response = await fs.readFileSync("credentials.json");
+    return await authorize(JSON.parse(response), func);
+  } catch (err) {
+    return console.log("Error loading client secret file:", err);
+  }
 }
 
 /**
@@ -29,7 +36,7 @@ function connect(func) {
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(credentials, callback) {
+async function authorize(credentials, callback) {
   const { client_secret, client_id, redirect_uris } = credentials.installed;
   const oAuth2Client = new google.auth.OAuth2(
     client_id,
@@ -38,11 +45,19 @@ function authorize(credentials, callback) {
   );
 
   // Check if we have previously stored a token.
-  fs.readFile(TOKEN_PATH, (err, token) => {
-    if (err) return getNewToken(oAuth2Client, callback);
-    oAuth2Client.setCredentials(JSON.parse(token));
-    callback(oAuth2Client);
-  });
+  // fs.readFile(TOKEN_PATH, async (err, token) => {
+  //   if (err) return getNewToken(oAuth2Client, callback);
+  //   oAuth2Client.setCredentials(JSON.parse(token));
+  //   return await callback(oAuth2Client);
+  // });
+
+  try {
+    let response = await fs.readFileSync(TOKEN_PATH);
+    oAuth2Client.setCredentials(JSON.parse(response));
+    return await callback(oAuth2Client);
+  } catch (err) {
+    return getNewToken(oAuth2Client, callback);
+  }
 }
 
 /**
@@ -85,6 +100,27 @@ function getNewToken(oAuth2Client, callback) {
 async function update(req, res) {
   return await connect(async (auth) => {
     const sheets = await google.sheets({ version: "v4", auth });
+    return sheets.spreadsheets.values.update(
+      {
+        spreadsheetId: SPREADSHEET_ID,
+        ...req,
+      },
+      (err, result) => {
+        if (err) {
+          // Handle error
+          console.log(err);
+        } else {
+          // console.log("%d cells updated.", result.updatedCells);
+          res && res.json(200);
+        }
+      }
+    );
+  });
+}
+
+async function append(req, res) {
+  return await connect(async (auth) => {
+    const sheets = await google.sheets({ version: "v4", auth });
     return sheets.spreadsheets.values.append(
       {
         spreadsheetId: SPREADSHEET_ID,
@@ -100,6 +136,34 @@ async function update(req, res) {
         }
       }
     );
+  });
+}
+
+async function get(req) {
+  return await connect(async (auth) => {
+    const sheets = await google.sheets({ version: "v4", auth });
+    const response = (
+      await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        ...req,
+      })
+    ).data;
+
+    return response;
+  });
+}
+
+async function batchGet(req) {
+  return await connect(async (auth) => {
+    const sheets = await google.sheets({ version: "v4", auth });
+    const response = (
+      await sheets.spreadsheets.values.batchGet({
+        spreadsheetId: SPREADSHEET_ID,
+        ...req,
+      })
+    ).data;
+
+    return response;
   });
 }
 
@@ -132,4 +196,7 @@ function uploadScreenshot(reqData) {
 }
 
 exports.update = update;
+exports.append = append;
+exports.get = get;
+exports.batchGet = batchGet;
 exports.uploadScreenshot = uploadScreenshot;
