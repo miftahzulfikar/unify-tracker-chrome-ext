@@ -177,7 +177,6 @@ function gotMessage(message, sender, sendResponse) {
 
   if(message.text == "toggle"){
     toggleIframe();
-    // console.log('send msg toggle');
   }
   
     if (message.type === "BUTTON_CLICK") {

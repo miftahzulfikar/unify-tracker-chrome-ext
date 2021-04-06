@@ -7,6 +7,10 @@
   outline: 2px dotted #ef144a;
 } */
 
+/* [data-unify] {
+  outline: 2px dotted #EF144A;
+} */
+
 #unifySelectorIframe {
   position: fixed;
   width: 400px;
@@ -15,7 +19,8 @@
   right: 24px;
   z-index: 9999;
   border: none;
-  box-shadow: rgb(202 211 225) 0px 1px 4px 0px;
-  background: linear-gradient(160deg, rgba(250,252,254,1) 0%, rgba(255,255,255,1) 33%, rgba(214,255,222,1) 100%);
+  box-shadow: rgb(183, 183, 183, 71%) 0px 1px 20px 1px;
   height: 400px;
+  backdrop-filter: blur(4px);
+  background: rgb(255, 255, 255, 70%);
 }
