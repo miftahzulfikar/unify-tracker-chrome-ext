@@ -1,6 +1,6 @@
 const startBrowser = require("./browser");
 const spreadsheetAPI = require("./spreadsheet");
-const { tagList } = require("./constant");
+// const { tagList } = require("./constant");
 const postSlack = require("./postSlack");
 
 (async () => {
@@ -15,11 +15,12 @@ const postSlack = require("./postSlack");
   let browserInstance = await startBrowser();
 
   try {
-    const getSheetListRes = await spreadsheetAPI.get({
-      range: "Dashboard!A9:A100",
+    const getParams = await spreadsheetAPI.batchGet({
+      ranges: ["Dashboard!A9:A100", "Dashboard!E5:E100"],
     });
 
-    const sheetList = getSheetListRes.values.flat();
+    const sheetList = getParams.valueRanges[0].values.flat();
+    const tagList = getParams.valueRanges[1].values.flat();
 
     for (let i = 0; i < sheetList.length; i++) {
       try {
