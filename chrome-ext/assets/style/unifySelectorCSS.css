@@ -1,7 +1,26 @@
+/* [data-unify],
+[data-testid] {
+  outline: 2px dotted #EF144A;
+} */
+
+/* [class*="unf-card"] {
+  outline: 2px dotted #ef144a;
+} */
+
 /* [data-unify] {
   outline: 2px dotted #EF144A;
 } */
 
-[class*="unf-card"] {
-  outline: 2px dotted #ef144a;
+#unifySelectorIframe {
+  position: fixed;
+  width: 400px;
+  border-radius: 8px;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  border: none;
+  box-shadow: rgb(183, 183, 183, 71%) 0px 1px 20px 1px;
+  height: 400px;
+  backdrop-filter: blur(4px);
+  background: rgb(255, 255, 255, 70%);
 }

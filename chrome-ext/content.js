@@ -76,15 +76,23 @@ var highlightNonUnify = false;
 
 chrome.runtime.onMessage.addListener(gotMessage);
 
-function gotMessage(message, sender, sendResponse) {
-  console.log(message);
-  if (message.type === "BUTTON_CLICK") {
-    handleButtonClick();
-  } else if (message.type === "CHECKBOX_CLICK") {
-    handleCheckboxClick(message.value);
-  } else if (message.type === "CHECKBOX2_CLICK") {
-    handleCheckbox2Click(message.value);
-  }
+function countComponent(selector, i) {
+  let list = document.querySelectorAll(selector);
+  // highlightComponent(selector, i);
+
+  return list.length;
+}
+
+function highlightComponent(selector, i, coloring) {
+  let list = document.querySelectorAll(selector);
+  list.forEach((element) => {
+    if (coloring) {
+      element.style.outline = `2px dotted ${colors[i]}`;
+    } else {
+      element.style.outline = "none";
+    }
+  });
+  return list.length;
 }
 
 function handleButtonClick() {
@@ -132,21 +140,50 @@ function handleCheckbox2Click(value) {
   });
 }
 
-function countComponent(selector, i) {
-  let list = document.querySelectorAll(selector);
-  // highlightComponent(selector, i);
+function createIframe() {
+  const iframe = document.createElement('iframe');
+  iframe.id = "unifySelectorIframe";
+  iframe.frameBorder = "none"; 
+  iframe.src = chrome.extension.getURL("popup.html");
 
-  return list.length;
+  document.body.appendChild(iframe);
 }
 
-function highlightComponent(selector, i, coloring) {
-  let list = document.querySelectorAll(selector);
-  list.forEach((element) => {
-    if (coloring) {
-      element.style.outline = `2px dotted ${colors[i]}`;
-    } else {
-      element.style.outline = "none";
+function createStyle() {
+  const style = document.createElement("link");
+  style.id = 'unifySelectorStyle';
+  style.rel = 'stylesheet';
+  style.type = 'text/css';
+  style.href = chrome.extension.getURL("/assets/style/unifySelectorCSS.css");
+
+  document.getElementsByTagName('head')[0].appendChild(style);
+}
+
+function toggleIframe () {
+  if (document.getElementById('unifySelectorIframe')) {
+    // if they exist, remove them
+    document.getElementsByTagName('body')[0].removeChild(document.getElementById('unifySelectorIframe'));
+    document.getElementsByTagName('head')[0].removeChild(document.getElementById('unifySelectorStyle'));
+
+  } else {
+    // if they don't exist, inject createStyle() & createIframe();
+    createStyle();
+    createIframe();
+  }
+}
+
+function gotMessage(message, sender, sendResponse) {
+  console.log(message);
+
+  if(message.text == "toggle"){
+    toggleIframe();
+  }
+  
+    if (message.type === "BUTTON_CLICK") {
+      handleButtonClick();
+    } else if (message.type === "CHECKBOX_CLICK") {
+      handleCheckboxClick(message.value);
+    } else if (message.type === "CHECKBOX2_CLICK") {
+      handleCheckbox2Click(message.value);
     }
-  });
-  return list.length;
 }

@@ -1,11 +1,70 @@
-.two-column {
-  display: grid;
-  grid-template-columns: auto auto;
-  column-gap: 8px;
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-.section-title {
-  border-bottom: solid 1px #e1e1e1;
+/* Remove default padding */
+ul[class],
+ol[class] {
+  padding: 0;
+}
+
+/* Remove default margin */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+ul[class],
+ol[class],
+li,
+figure,
+figcaption,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Set core body defaults */
+body {
+  min-height: 100vh;
+  scroll-behavior: smooth;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+}
+
+/* Remove list styles on ul, ol elements with a class attribute */
+ul[class],
+ol[class] {
+  list-style: none;
+}
+
+/* A elements that don't have a class get default styles */
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+}
+
+/* Make images easier to work with */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Natural flow and rhythm in articles by default */
+article > * + * {
+  margin-top: 1em;
+}
+
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+  font: inherit;
 }
 
 input[type="checkbox"] {
@@ -19,4 +78,53 @@ tr {
 
 thead > tr {
   border-top: solid 1px #e1e1e1;
+}
+
+.container {
+  padding: 20px 0;
+}
+
+.two-column {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 8px;
+}
+
+.section-title {
+  border-bottom: solid 1px #e1e1e1;
+}
+
+/* ====================== custom style ====================== */
+
+button, 
+.button {
+  margin-bottom: 8px;
+  outline: none;
+  border: none;
+  font-weight: 700;
+}
+
+.title,
+.section-title {
+  display: block;
+  position: relative;
+  font-weight: 800;
+  line-height: 26px;
+  color: rgba(49, 53, 59, 0.96);
+}
+
+.title {
+  font-size: 29px;
+  margin-bottom: 22px;
+}
+
+.section-title {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+button.button-primary {
+  background-color: rgb(3, 172, 14);
+  font-weight: 700;
+  font-size: 12px;
 }
