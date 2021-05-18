@@ -1,7 +1,9 @@
+const puppeteer = require("puppeteer");
 const startBrowser = require("./browser");
 const spreadsheetAPI = require("./spreadsheet");
 // const { tagList } = require("./constant");
 const postSlack = require("./postSlack");
+const iPhone = puppeteer.devices["iPhone 6"];
 
 (async () => {
   let startDate = Date();
@@ -40,6 +42,8 @@ const postSlack = require("./postSlack");
           console.log("- Scraping route: ", routes[j], "...");
           const params = JSON.parse(values[j]);
           const page = await browserInstance.newPage();
+
+          await page.emulate(iPhone);
 
           await page.setDefaultNavigationTimeout(0);
 
