@@ -21,8 +21,10 @@ const iPhone = puppeteer.devices["iPhone 6"];
       ranges: ["Dashboard!A9:A100", "Dashboard!E5:E100"],
     });
 
-    const sheetList = getParams.valueRanges[0].values.flat();
-    const tagList = getParams.valueRanges[1].values.flat();
+    const sheetList = getParams.valueRanges[0].values
+      ? getParams.valueRanges[0].values.flat()
+      : [];
+    const tagList = getParams.valueRanges[1].values?.flat();
 
     for (let i = 0; i < sheetList.length; i++) {
       try {
@@ -35,8 +37,10 @@ const iPhone = puppeteer.devices["iPhone 6"];
         const response = await spreadsheetAPI.batchGet({
           ranges: [`${module}!B6:B100`, `${module}!D6:D100`],
         });
-        const routes = response.valueRanges[0].values.flat();
-        const values = response.valueRanges[1].values.flat();
+        const routes = response.valueRanges[0].values?.flat();
+        const values = response.valueRanges[1].values
+          ? response.valueRanges[1].values.flat()
+          : [];
 
         for (let j = 0; j < values.length; j++) {
           console.log("- Scraping route: ", routes[j], "...");
@@ -46,6 +50,28 @@ const iPhone = puppeteer.devices["iPhone 6"];
           await page.emulate(iPhone);
 
           await page.setDefaultNavigationTimeout(0);
+
+          // if (params.login) {
+          //   await page.goto("https://staging.tokopedia.com/", {
+          //     waitUntil: "networkidle2",
+          //   });
+
+          //   await page.click('[data-testid="btnLogin"]');
+
+          //   await page.waitForTimeout(1000);
+
+          //   await page.type("#input", "dwi.widodo+06@tokopedia.com");
+
+          //   await page.click("#button-submit");
+
+          //   await page.waitForTimeout(1000);
+
+          //   await page.type("#password", "dodopass");
+
+          //   await page.click("#button-submit");
+
+          //   await page.waitForTimeout(1000);
+          // }
 
           await page.goto(params.url, { waitUntil: "networkidle2" });
 
