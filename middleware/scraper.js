@@ -35,108 +35,127 @@ const iPhone = puppeteer.devices["iPhone 6"];
 
         // get routes & params
         const response = await spreadsheetAPI.batchGet({
-          ranges: [`${module}!B6:B100`, `${module}!D6:D100`],
+          ranges: [
+            `${module}!B6:B100`,
+            `${module}!M6:M100`,
+            `${module}!N6:N100`,
+            `${module}!O6:O100`,
+          ],
         });
-        const routes = response.valueRanges[0].values?.flat();
-        const values = response.valueRanges[1].values
-          ? response.valueRanges[1].values.flat()
+        const routes = response.valueRanges[0].values
+          ? response.valueRanges[0].values.flat()
           : [];
+        const urls = response.valueRanges[1].values?.flat();
+        const actions = response.valueRanges[2].values?.flat();
+        const others = response.valueRanges[3].values?.flat();
 
-        for (let j = 0; j < values.length; j++) {
+        for (let j = 0; j < routes.length; j++) {
           console.log("- Scraping route: ", routes[j], "...");
-          const params = JSON.parse(values[j]);
-          const page = await browserInstance.newPage();
+          if (urls && urls[j]) {
+            const url = urls[j];
+            const page = await browserInstance.newPage();
 
-          await page.emulate(iPhone);
+            await page.emulate(iPhone);
 
-          await page.setDefaultNavigationTimeout(0);
+            await page.setDefaultNavigationTimeout(0);
 
-          // if (params.login) {
-          //   await page.goto("https://staging.tokopedia.com/", {
-          //     waitUntil: "networkidle2",
-          //   });
+            await page.goto(url, { waitUntil: "networkidle2" });
 
-          //   await page.click('[data-testid="btnLogin"]');
+            if (others && others[j]) {
+              const otherParams = JSON.parse(others[j]);
+              if (otherParams && otherParams.lazyload) {
+                // Get scroll width and height of the rendered page and set viewport
+                const bodyWidth = await page.evaluate(
+                  () => document.body.scrollWidth
+                );
+                const bodyHeight = await page.evaluate(
+                  () => document.body.scrollHeight
+                );
+                await page.setViewport({
+                  width: bodyWidth,
+                  height: bodyHeight,
+                });
+                await page.waitForTimeout(10000);
+              }
 
-          //   await page.waitForTimeout(1000);
+              if (otherParams && otherParams.wait) {
+                await page.waitForTimeout(otherParams.wait);
+              }
+            } else {
+              console.log("no other params");
+            }
 
-          //   await page.type("#input", "dwi.widodo+06@tokopedia.com");
-
-          //   await page.click("#button-submit");
-
-          //   await page.waitForTimeout(1000);
-
-          //   await page.type("#password", "dodopass");
-
-          //   await page.click("#button-submit");
-
-          //   await page.waitForTimeout(1000);
-          // }
-
-          await page.goto(params.url, { waitUntil: "networkidle2" });
-
-          if (params.lazyload) {
-            // Get scroll width and height of the rendered page and set viewport
-            const bodyWidth = await page.evaluate(
-              () => document.body.scrollWidth
-            );
-            const bodyHeight = await page.evaluate(
-              () => document.body.scrollHeight
-            );
-            await page.setViewport({ width: bodyWidth, height: bodyHeight });
-            await page.waitForTimeout(10000);
-          }
-
-          if (params.wait) {
-            await page.waitForTimeout(params.wait);
-          }
-
-          const item = await page.evaluate(
-            async ({ params, tagList }) => {
-              const { name, ...otherParams } = params;
-              // unify
-              let list = document.querySelectorAll("[data-unify]");
-
-              const reduced = Array.from(list).reduce((acc, el) => {
-                const key = el.getAttribute("data-unify");
-
-                acc[key] = acc[key] ? acc[key] + 1 : 1;
-
-                return acc;
-              }, {});
-
-              const reduced2 = Object.keys(reduced).reduce(
-                (acc, x) => `${acc}- ${x}: ${reduced[x]}\n`,
-                ""
-              );
-
-              // non unify
-
-              let nonUnifyList = tagList.reduce((acc, tag) => {
-                const count = document.querySelectorAll(
-                  `${tag}:not([data-unify])`
-                ).length;
-                if (count > 0) {
-                  return `${acc}- ${tag}: ${count}\n`;
+            if (actions && actions[j]) {
+              const actionList = JSON.parse(actions[j]);
+              if (actionList) {
+                for (let k = 0; k < actionList.length; k++) {
+                  let actionObj = actionList[k];
+                  let value = Array.isArray(actionObj.value)
+                    ? actionObj.value
+                    : [actionObj.value];
+                  console.log("action: ", actionObj);
+                  try {
+                    await page[actionObj.type](...value);
+                  } catch (err) {
+                    console.log("action: ", actionObj, " ", err);
+                  }
                 }
+              }
+            }
 
-                return acc;
-              }, "");
+            /**
+             * scrapping function
+             */
+            const item = await page.evaluate(
+              async ({ tagList }) => {
+                console.log("run scraper..");
+                // unify
+                let list = document.querySelectorAll("[data-unify]");
+                console.log(list);
 
-              return [reduced2, nonUnifyList];
-            },
-            { params, tagList }
-          );
+                const reduced = Array.from(list).reduce((acc, el) => {
+                  const key = el.getAttribute("data-unify");
 
-          console.log("insert data to spreadsheet...");
+                  acc[key] = acc[key] ? acc[key] + 1 : 1;
 
-          try {
-            await updateSingleRow(module, item, j);
-            slackMsg += `- ${routes[j]} :heavy_check_mark: \n`;
-          } catch (e) {
-            slackMsg += `- ${routes[j]} :x: \n`;
-          } finally {
-            await page.close();
+                  return acc;
+                }, {});
+
+                const reduced2 = Object.keys(reduced).reduce(
+                  (acc, x) => `${acc}- ${x}: ${reduced[x]}\n`,
+                  ""
+                );
+
+                // non unify
+
+                let nonUnifyList = tagList.reduce((acc, tag) => {
+                  const count = document.querySelectorAll(
+                    `${tag}:not([data-unify])`
+                  ).length;
+                  if (count > 0) {
+                    return `${acc}- ${tag}: ${count}\n`;
+                  }
+
+                  return acc;
+                }, "");
+
+                return [reduced2, nonUnifyList];
+              },
+              { tagList }
+            );
+
+            console.log("insert data to spreadsheet...");
+
+            try {
+              await updateSingleRow(module, item, j);
+              slackMsg += `- ${routes[j]} :heavy_check_mark: \n`;
+            } catch (e) {
+              slackMsg += `- ${routes[j]} :x: \n`;
+            } finally {
+              await page.close();
+            }
+          } else {
+            console.log("no url");
           }
         }
 
