@@ -62,9 +62,9 @@ function highlightComponent(selector, i, coloring) {
   let list = document.querySelectorAll(selector);
   list.forEach((element) => {
     if (coloring) {
-      element.style.outline = `2px dotted ${colors[i]}`;
+      element.style.border = `2px dotted ${colors[i]}`;
     } else {
-      element.style.outline = "none";
+      element.style.border = "none";
     }
   });
   return list.length;
@@ -78,6 +78,7 @@ function handleButtonClick() {
 
   /**
    * Get component with attr data-unify
+   * 
    */
   let list = document.querySelectorAll("[data-unify]");
 
@@ -105,11 +106,16 @@ function handleButtonClick() {
    * Fetch array and display it in popup (UI)
    * This also provides a highlight on the selected element
    */
-  componentList[0].forEach(function ([key, value], i) {
-    highlightComponent(`*[data-unify*=${key}]`, i, highlight);
+  componentList[0].forEach(function ([key], i) {
+    const selectorElm = `*[data-unify*=${key}]`;
+    const count = countComponent(selectorElm, i);
+
+    highlightComponent(selectorElm, i, highlight);
+
     data.unify.push({
       name: key,
-      count: value.length,
+      selector: selectorElm,
+      count,
       color: colors[i]
     });
   });
@@ -123,6 +129,7 @@ function handleButtonClick() {
    */
   tagList.forEach(function (item, i) {
     const count = countComponent(`${item}:not([data-unify])`, i);
+
     if (count > 0) {
       data.nonunify.push({ 
         name: item, 
@@ -189,17 +196,20 @@ function toggleIframe () {
 }
 
 function gotMessage(message, sender, sendResponse) {
-  console.log(message);
+  // console.log(message);
 
   if(message.text == "toggle"){
     toggleIframe();
   }
-  
-    if (message.type === "BUTTON_CLICK") {
-      handleButtonClick();
-    } else if (message.type === "CHECKBOX_CLICK") {
-      handleCheckboxClick(message.value);
-    } else if (message.type === "CHECKBOX2_CLICK") {
-      handleCheckbox2Click(message.value);
-    }
+
+  if (message.type === "BUTTON_CLICK") {
+    handleButtonClick();
+    
+  } else if (message.type === "CHECKBOX_CLICK") {
+
+    handleCheckboxClick(message.value);
+  } else if (message.type === "CHECKBOX2_CLICK") {
+
+    handleCheckbox2Click(message.value);
+  }
 }
