@@ -9,7 +9,7 @@ const exportButton = document.getElementById("export");
 button.addEventListener("click", handleButtonClicked);
 
 function handleButtonClicked() {
-  console.log("button clicked");
+  // console.log("button clicked");
 
   chrome.tabs.query({ active: true, currentWindow: true }, sendMessage);
 
@@ -24,7 +24,7 @@ function handleButtonClicked() {
 checkbox.addEventListener("click", handleCheckboxClicked);
 
 function handleCheckboxClicked() {
-  console.log("checkbox clicked", checkbox.checked);
+  // console.log("checkbox clicked", checkbox.checked);
 
   chrome.tabs.query({ active: true, currentWindow: true }, sendMessage);
 
@@ -40,7 +40,7 @@ function handleCheckboxClicked() {
 checkbox2.addEventListener("click", handleCheckbox2Clicked);
 
 function handleCheckbox2Clicked() {
-  console.log("checkbox clicked", checkbox.checked);
+  // console.log("checkbox clicked", checkbox.checked);
 
   chrome.tabs.query({ active: true, currentWindow: true }, sendMessage);
 
@@ -77,7 +77,7 @@ function handleExportButtonClick() {
   formData.append("range", targetCellValue);
   formData.append("list", JSON.stringify(list));
 
-  console.log(targetCellValue);
+  // console.log(targetCellValue);
   instance.put("/update-spreadsheet", formData);
 }
 
@@ -86,7 +86,7 @@ function handleExportButtonClick() {
 chrome.runtime.onMessage.addListener(gotMessage);
 
 function gotMessage(message, sender, sendResponse) {
-  console.log(message);
+  // console.log(message);
 
   if (message.type === "setCount") {
     list = message.data.unify;

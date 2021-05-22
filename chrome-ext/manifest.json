@@ -27,7 +27,8 @@
       "32": "/assets/img/unify_logo.png",
       "48": "/assets/img/unify_logo.png",
       "128": "/assets/img/unify_logo.png"
-    }
+    },
+    "default_popup": "popup.html"
   },
 
   "icons": {
@@ -38,7 +39,6 @@
   },
 
   "web_accessible_resources": [
-    "/assets/style/unifySelectorCSS.css",
-    "/popup.html"
+    "/assets/style/unifySelectorCSS.css"
   ]
 }

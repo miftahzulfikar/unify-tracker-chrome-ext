@@ -1,32 +1,7 @@
-console.log("hello world from content extension");
-
-const componentList = [
-  {
-    id: 1,
-    name: "Button",
-    selector: "*[class*='unf-btn']",
-  },
-  // {
-  //   id: 2,
-  //   name: "Button non Unify",
-  //   selector: "button:not(*[class*='unf-btn'])",
-  // },
-  {
-    id: 3,
-    name: "Image",
-    selector: "picture.unf-image > img",
-  },
-  // {
-  //   id: 3,
-  //   name: "Image non Unify",
-  //   selector: "img:not(picture.unf-image > img)",
-  // },
-  {
-    id: 4,
-    name: "Card",
-    selector: "*[class*='unf-card']",
-  },
-];
+/**
+ * New Array for all Component Unify
+ */
+let componentList = [];
 
 // should unify
 const tagList = [
@@ -87,9 +62,9 @@ function highlightComponent(selector, i, coloring) {
   let list = document.querySelectorAll(selector);
   list.forEach((element) => {
     if (coloring) {
-      element.style.outline = `2px dotted ${colors[i]}`;
+      element.style.border = `2px dotted ${colors[i]}`;
     } else {
-      element.style.outline = "none";
+      element.style.border = "none";
     }
   });
   return list.length;
@@ -101,18 +76,66 @@ function handleButtonClick() {
     nonunify: [],
   };
 
-  componentList.forEach(function (item, i) {
-    const count = countComponent(item.selector, i);
-    if (count > 0) {
-      highlightComponent(item.selector, i, highlight);
-      data.unify.push({ ...item, count, color: colors[i] });
-    }
+  /**
+   * Get component with attr data-unify
+   * 
+   */
+  let list = document.querySelectorAll("[data-unify]");
+
+  /**
+   * Grouping by key 
+   * NB: key is value attr data-unify
+   */
+  const listArr = Array.from(list).reduce((acc, i) => {
+    const key = i.getAttribute("data-unify");
+
+    acc[key] = [...acc[key] || [], i];
+
+    return acc;
+  }, {});
+
+  /**
+   * Push and make to new array
+   * you can see var componentList[]
+   */
+  componentList.push(Object.entries(listArr));
+
+  /**
+   * NB: Unify Element
+   * 
+   * Fetch array and display it in popup (UI)
+   * This also provides a highlight on the selected element
+   */
+  componentList[0].forEach(function ([key], i) {
+    const selectorElm = `*[data-unify*=${key}]`;
+    const count = countComponent(selectorElm, i);
+
+    highlightComponent(selectorElm, i, highlight);
+
+    data.unify.push({
+      name: key,
+      selector: selectorElm,
+      count,
+      color: colors[i]
+    });
   });
 
+
+  /**
+   * NB: Not Unify Element
+   * 
+   * Fetch array and display it in popup (UI)
+   * This also provides a highlight on the selected element
+   */
   tagList.forEach(function (item, i) {
     const count = countComponent(`${item}:not([data-unify])`, i);
+
     if (count > 0) {
-      data.nonunify.push({ name: item, count, color: colors[i] });
+      data.nonunify.push({ 
+        name: item, 
+        count, 
+        color: colors[i] 
+      });
     }
   });
 
@@ -173,17 +196,20 @@ function toggleIframe () {
 }
 
 function gotMessage(message, sender, sendResponse) {
-  console.log(message);
+  // console.log(message);
 
   if(message.text == "toggle"){
     toggleIframe();
   }
-  
-    if (message.type === "BUTTON_CLICK") {
-      handleButtonClick();
-    } else if (message.type === "CHECKBOX_CLICK") {
-      handleCheckboxClick(message.value);
-    } else if (message.type === "CHECKBOX2_CLICK") {
-      handleCheckbox2Click(message.value);
-    }
+
+  if (message.type === "BUTTON_CLICK") {
+    handleButtonClick();
+    
+  } else if (message.type === "CHECKBOX_CLICK") {
+
+    handleCheckboxClick(message.value);
+  } else if (message.type === "CHECKBOX2_CLICK") {
+
+    handleCheckbox2Click(message.value);
+  }
 }
