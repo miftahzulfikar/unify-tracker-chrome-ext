@@ -24,7 +24,9 @@ const iPhone = puppeteer.devices["iPhone 6"];
     const sheetList = getParams.valueRanges[0].values
       ? getParams.valueRanges[0].values.flat()
       : [];
-    const tagList = getParams.valueRanges[1].values?.flat();
+    const tagList = getParams.valueRanges[1].values
+      ? getParams.valueRanges[1].values.flat()
+      : [];
 
     for (let i = 0; i < sheetList.length; i++) {
       try {
@@ -45,9 +47,15 @@ const iPhone = puppeteer.devices["iPhone 6"];
         const routes = response.valueRanges[0].values
           ? response.valueRanges[0].values.flat()
           : [];
-        const urls = response.valueRanges[1].values?.flat();
-        const actions = response.valueRanges[2].values?.flat();
-        const others = response.valueRanges[3].values?.flat();
+        const urls = response.valueRanges[1].values
+          ? response.valueRanges[1].values.flat()
+          : [];
+        const actions = response.valueRanges[2].values
+          ? response.valueRanges[2].values.flat()
+          : [];
+        const others = response.valueRanges[3].values
+          ? response.valueRanges[3].values.flat()
+          : [];
 
         for (let j = 0; j < routes.length; j++) {
           console.log("- Scraping route: ", routes[j], "...");
